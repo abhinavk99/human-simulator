@@ -1,6 +1,6 @@
 from enum import Enum
 from urllib import request
-import graph
+from markovchain import Markov, State, Transition
 
 class Tokenization(Enum):
     word = 1
@@ -14,7 +14,7 @@ class TwitterWriter(object):
         # Tokenize by word or character
         self.tokenization = tokenization
         # Creats empty Markov chain
-        self.markov = graph.Markov()
+        self.markov = Markov()
 
     def output(self):
         """ Outputs tokens by randomly traversing the Markov chain
@@ -71,14 +71,14 @@ class TwitterWriter(object):
                     else:
                         if window not in self.markov.states:
                             # Makes state for window if not already a state
-                            curr_st = graph.State(window)
+                            curr_st = State(window)
                             self.markov.add_state(curr_st)
                         st = self.markov.states[window]
                         # Adds edge between previous and current states
-                        tr = graph.Transition(st, 1, window[-1])
+                        tr = Transition(st, 1, window[-1])
                         prev_st.add_transition(tr)
                 else:
                     # Makes state from the first window in the data
-                    st = graph.State(window)
+                    st = State(window)
                     self.markov.add_state(st)
                 prev_window = window

@@ -49,37 +49,22 @@ class TwitterWriter(object):
                 win.append(v)
             if len(win) == self.level:
                 window = tuple(win)
-                # Populate dict mapping states to other states
                 if prev_window is not None:
-                    if prev_window in counts:
-                        if window in counts[prev_window]:
-                            curr_count = counts[prev_window][window]
-                            counts[prev_window][window] = curr_count + 1
+                    if prev_window in self.markov.states:
+                        if window in self.markov.states[prev_window].transitions:
+                            prev_st = self.markov.states[prev_window]
+                            curr_count = prev_st.transitions[window].count
+                            prev_st.transitions[window].count = curr_count + 1
                         else:
-                            counts[prev_window][window] = 1
-                    else:
-                        counts[prev_window] = {window: 1}
-                if window not in counts:
-                    counts[window] = {}
-                prev_window = window
-        # Add all the states to the Markov chain
-        for state_val in counts:
-            if state_val not in self.markov.states:
-                state = graph.State(state_val)
-                self.markov.add_state(state)
-        # Add all the transitions between the states in the Markov chain
-        for src_val in counts:
-            for dest_val in counts[src_val]:
-                src = self.markov.states[src_val]
-                cnt = counts[src_val][dest_val]
-                possible_tr = src.transitions.get(dest_val)
-                if possible_tr is None:
-                    dest = self.markov.states[dest_val]
-                    tr = graph.Transition(dest, cnt, dest_val[-1])
-                    src.add_transition(tr)
+                            prev_st = self.markov.states[prev_window]
+                            curr_st = graph.State(window)
+                            self.markov.add_state(curr_st)
+                            tr = graph.Transition(curr_st, 1, window[-1])
+                            prev_st.add_transition(tr)
                 else:
-                    curr_count = possible_tr.count
-                    possible_tr.count = curr_count + cnt
+                    st = graph.State(window)
+                    self.markov.add_state(st)
+                prev_window = window
 
     def check_type(self, data):
         """Checks for correct data typing

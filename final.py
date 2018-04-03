@@ -1,8 +1,6 @@
 from enum import Enum
 from urllib import request
 import graph
-import itertools
-import pickle
 
 class Tokenization(Enum):
     word = 1
@@ -11,35 +9,47 @@ class Tokenization(Enum):
 class TwitterWriter(object):
 
     def __init__(self, level, tokenization=Tokenization.word):
+        # How many tokens to save in each state
         self.level = level
+        # Tokenize by word or character
         self.tokenization = tokenization
+        # Creats empty Markov chain
         self.markov = graph.Markov()
 
     def output(self):
+        """ Outputs tokens by randomly traversing the Markov chain
+        """
         state = self.markov.get_rand_state()
+        # Yields all the tokens in the first state
         for token in state.value:
             yield token
         while state is not None:
             if len(state.transitions) == 0:
+                # Gets a new starting state if prior state has no outgoing edges
                 state = self.markov.get_rand_state()
             else:
+                # Randomly gets the next state and yields the changing token
                 transition = state.get_next()
                 yield transition.value
                 state = transition.dest
 
     def learn_url(self, url):
-        if self.tokenization == Tokenization.none:
-            raise ValueError('Tokenization cannot be none')
+        """ Creates the Markov chain from a URL
+        """
         with request.urlopen(url) as f:
-            self.train_iterable(f.read().decode('utf-8'))
+            self.learn_iterable(f.read().decode('utf-8'))
 
     def learn_iterable(self, data):
-        self.check_type(data)
+        """ Creats the Markov chain by going through the data and computing
+        probabilities
+        """
+        if self.tokenization in (Tokenization.word, Tokenization.character):
+            if not isinstance(data, str):
+                raise TypeError('Data must be a string')
         if self.tokenization == Tokenization.word:
             data = data.split()
-        counts = {}
         prev_window = None
-        # Window creation taken from Arthur Peters' final_tests.py
+        # Code for converting data to win used was taken from Arthur Peters
         win = list()
         for v in data:
             if len(win) < self.level:
@@ -48,27 +58,27 @@ class TwitterWriter(object):
                 win.pop(0)
                 win.append(v)
             if len(win) == self.level:
+                # Creates tuples of elements in data for each Markov state
                 window = tuple(win)
+                # Checks if not at the first window in the data
                 if prev_window is not None:
-                    if prev_window in self.markov.states:
-                        if window in self.markov.states[prev_window].transitions:
-                            prev_st = self.markov.states[prev_window]
-                            curr_count = prev_st.transitions[window].count
-                            prev_st.transitions[window].count = curr_count + 1
-                        else:
-                            prev_st = self.markov.states[prev_window]
+                    prev_st = self.markov.states[prev_window]
+                    # Checks if there's an edge between previous and current
+                    if window in prev_st.transitions:
+                        tr = prev_st.transitions[window]
+                        # Increments number of times current is after previous
+                        tr.count += 1
+                    else:
+                        if window not in self.markov.states:
+                            # Makes state for window if not already a state
                             curr_st = graph.State(window)
                             self.markov.add_state(curr_st)
-                            tr = graph.Transition(curr_st, 1, window[-1])
-                            prev_st.add_transition(tr)
+                        st = self.markov.states[window]
+                        # Adds edge between previous and current states
+                        tr = graph.Transition(st, 1, window[-1])
+                        prev_st.add_transition(tr)
                 else:
+                    # Makes state from the first window in the data
                     st = graph.State(window)
                     self.markov.add_state(st)
                 prev_window = window
-
-    def check_type(self, data):
-        """Checks for correct data typing
-        """
-        if self.tokenization in (Tokenization.word, Tokenization.character):
-            if not isinstance(data, str):
-                raise TypeError('Data must be a string')

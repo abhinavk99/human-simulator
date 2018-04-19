@@ -1,5 +1,6 @@
 from enum import Enum
 from urllib import request
+import pickle
 from markovchain import Markov, State, Transition
 
 class Tokenization(Enum):
@@ -32,6 +33,23 @@ class TwitterWriter(object):
                 transition = state.get_next()
                 yield transition.value
                 state = transition.dest
+
+    def dump_pickle(self, filename):
+        """Dumps this to a pickle
+        """
+        with open(filename, 'wb') as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def read_pickle(cls, filename):
+        """Loads the pickle from a file to an instance of TwitterWriter
+        """
+        with open(filename, 'rb') as file:
+            res = pickle.load(file)
+        if isinstance(res, RandomWriter):
+            return res
+        else:
+            raise ValueError('Must load a RandomWriter object')
 
     def learn_url(self, url):
         """ Creates the Markov chain from a URL

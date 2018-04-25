@@ -1,5 +1,3 @@
-# Abhinav Kasamsetty - ak37644
-
 import random
 
 class Markov(object):

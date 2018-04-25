@@ -1,4 +1,7 @@
-src/config.py
+history.jsonl
+config.py
+markovpickle.txt
+src/__pycache__/
 
 # Created by https://www.gitignore.io/api/python
 

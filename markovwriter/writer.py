@@ -1,19 +1,12 @@
 from enum import Enum
-from urllib import request
 import pickle
-from markovchain import Markov, State, Transition
-
-class Tokenization(Enum):
-    word = 1
-    character = 2
+from markovwriter.markovchain import Markov, State, Transition
 
 class TwitterWriter(object):
 
-    def __init__(self, level, tokenization=Tokenization.word):
+    def __init__(self, level):
         # How many tokens to save in each state
         self.level = level
-        # Tokenize by word or character
-        self.tokenization = tokenization
         # Creats empty Markov chain
         self.markov = Markov()
 
@@ -51,21 +44,11 @@ class TwitterWriter(object):
         else:
             raise ValueError('Must load a RandomWriter object')
 
-    def learn_url(self, url):
-        """ Creates the Markov chain from a URL
-        """
-        with request.urlopen(url) as f:
-            self.learn_iterable(f.read().decode('utf-8'))
-
     def learn_iterable(self, data):
-        """ Creats the Markov chain by going through the data and computing
+        """ Creates the Markov chain by going through the data and computing
         probabilities
         """
-        if self.tokenization in (Tokenization.word, Tokenization.character):
-            if not isinstance(data, str):
-                raise TypeError('Data must be a string')
-        if self.tokenization == Tokenization.word:
-            data = data.split()
+        data = data.split()
         prev_window = None
         # Code for converting data to win used was taken from Arthur Peters
         win = list()

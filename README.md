@@ -9,7 +9,7 @@ from the Markov chain and tweets it.
 ## Installation and Usage
 1. Clone the repo to your computer and install the required dependencies.
     ```console
-    git clone https://github.com/abhinavk99/human-simulator.git```
+    git clone https://github.com/abhinavk99/human-simulator.git
     cd human-simulator
     pip install -r requirements.txt
     ```

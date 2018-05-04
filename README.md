@@ -1,4 +1,4 @@
-# twitter-writer
+# human-simulator
 
 Twitter bot that uses a Markov chain to train on a person's messages.
 

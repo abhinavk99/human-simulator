@@ -1,6 +1,6 @@
 # human-simulator
 
-Twitter bot that uses a Markov chain to train on a person's messages.
+Twitter bot that uses a Markov chain to simulate a person.
 
 The bot is trained on a dataset of a user's messages in a Telegram chat group and creates
 a Markov chain to store the way the user talks. The bot produces random output
